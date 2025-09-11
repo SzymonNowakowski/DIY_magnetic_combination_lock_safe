@@ -92,6 +92,20 @@ draw_side_wall <- function(width_segment_count, height_segment_count) {
   
 } 
 
+# Draw rectangle by low-left corner, width w, height h
+draw_rectangle <- function(x0, y0, w, h) {
+  x1 <- x0 + w; y1 <- y0 + h
+  lines(c(x0, x1), c(y0, y0))  
+  lines(c(x1, x1), c(y0, y1))  
+  lines(c(x1, x0), c(y1, y1))  
+  lines(c(x0, x0), c(y1, y0))  
+}
+
+
+draw_outer_back<- function(width_segment_count, height_segment_count) {
+  draw_rectangle(2, 2, width_segment_count*feather_width_mm, height_segment_count*feather_width_mm)
+}
+
 draw_inner_back<- function(width_segment_count, height_segment_count) {
   current_pos <- c(plywood_thickness_mm,0)
   current_pos <- draw_straight_line(width_segment_count, 1, current_pos, increase_on_feather_width=TRUE, smaller_first=TRUE, smaller_last=TRUE, skip_feather=TRUE)
@@ -121,8 +135,8 @@ open.pdf("design_PDFs/base_front_or_back.pdf", case_width_in_feathers*feather_wi
 draw_side_wall(case_width_in_feathers, base_height_in_feathers)
 close.pdf()
 
-open.pdf("design_PDFs/base_inner_back.pdf", case_width_in_feathers*feather_width_mm, base_height_in_feathers*feather_width_mm, 10)
-draw_inner_back(case_width_in_feathers, base_height_in_feathers)
+open.pdf("design_PDFs/base_outer_back.pdf", case_width_in_feathers*feather_width_mm+10, base_height_in_feathers*feather_width_mm+10, 10)
+draw_outer_back(case_width_in_feathers, base_height_in_feathers)
 close.pdf()
 
 open.pdf("design_PDFs/base_bottom.pdf", case_width_in_feathers*feather_width_mm, case_depth_in_feathers*feather_width_mm, 10)
@@ -137,8 +151,8 @@ open.pdf("design_PDFs/lid_front_or_back.pdf", case_width_in_feathers*feather_wid
 draw_side_wall(case_width_in_feathers, lid_height_in_feathers)
 close.pdf()
 
-open.pdf("design_PDFs/lid_inner_back.pdf", case_width_in_feathers*feather_width_mm, lid_height_in_feathers*feather_width_mm, 10)
-draw_inner_back(case_width_in_feathers, lid_height_in_feathers)
+open.pdf("design_PDFs/lid_outer_back.pdf", case_width_in_feathers*feather_width_mm+10, lid_height_in_feathers*feather_width_mm+10, 10)
+draw_outer_back(case_width_in_feathers, lid_height_in_feathers)
 close.pdf()
 
 open.pdf("design_PDFs/lid_top.pdf", case_width_in_feathers*feather_width_mm, case_depth_in_feathers*feather_width_mm, 10)
