@@ -158,3 +158,10 @@ close.pdf()
 open.pdf("design_PDFs/lid_top.pdf", case_width_in_feathers*feather_width_mm, case_depth_in_feathers*feather_width_mm, 10)
 draw_top_or_bottom(case_width_in_feathers, case_depth_in_feathers)
 close.pdf()
+
+
+
+
+open.pdf("design_PDFs/circles.pdf", 100, 100, 10)
+draw_circle()
+close.pdf()
