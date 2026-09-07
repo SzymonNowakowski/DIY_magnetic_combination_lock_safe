@@ -115,6 +115,123 @@ draw_inner_back<- function(width_segment_count, height_segment_count) {
   
 } 
 
+# Draw an arc centered at (xc, yc), radius r,
+# from angle alpha to beta using only lines().
+draw_arc <- function(xc, yc, r, alpha, beta, n = 64) {
+  th <- seq(alpha, beta, length.out = n)
+  x <- xc + r * cos(th)
+  y <- yc + r * sin(th)
+  lines(x, y)
+}
+
+draw_line <- function(A, B) {
+  lines(c(A[1], B[1]), c(A[2], B[2]))
+}
+
+# Draw a circle centered at (xc, yc), radius r.
+#
+# At ten equally spaced clock-face positions around the circle,
+# draw rectangular indentations specified by indentation_vector,
+# with side_length specifying the length of their outer side.
+#
+# The outer side of each rectangle lies on the circumference.
+# The other two sides are parallel to the radius passing through
+# the midpoint of the outer side.
+#
+# At the ten equally spaced half-step positions in our
+# 10-position division, draw small circles of radius rs,
+# with their centers at distance ds from the center.
+#
+# In the middle, draw an additional circle of radius ra.
+draw_circle <- function(xc, yc, r,
+                        indentation_vector,
+                        side_length,
+                        rs,
+                        ds,
+                        small_circle_vector,
+                        ra) {
+  
+  n_pos <- 10
+  
+  stopifnot(length(indentation_vector) == n_pos)
+  stopifnot(length(small_circle_vector) == n_pos)
+  
+  # ------------------------------------------------------------
+  # 1. Clock-face positions
+  # ------------------------------------------------------------
+  
+  # 12 o'clock = pi/2, then clockwise, one more than hourly points for the closure
+  theta <- pi / 2 - (seq(0, len=n_pos+1)) * 2 * pi / n_pos
+  
+  # Angular spacing between positions
+  dtheta <- 2 * pi / n_pos
+  
+  # ------------------------------------------------------------
+  # 2. Outer circle, excluding rectangular indentations
+  # ------------------------------------------------------------
+  
+  # For each position, determine whether an indentation exists.
+  #
+  # If there is no indentation, draw the whole corresponding
+  # circular segment.
+  #
+  # If there is an indentation, leave a gap corresponding to
+  # its outer side.
+  
+  alpha <- atan2(side_length / 2, r)  
+  beta <- asin(side_length/2 / r)
+  r_prime <- sqrt(side_length^2 / 4 + r^2)
+  AB_length <- r_prime*cos(alpha) - r*cos(beta)
+  for (i in seq_len(n_pos)) {
+    pA <- c(xc + r_prime * cos(theta[i]+alpha), yc + r_prime * sin(theta[i]+alpha))
+    pB <- c(xc + r * cos(theta[i]+beta), yc + r * sin(theta[i]+beta))
+    pC <- pB + (pB-pA) * (indentation_vector[i] - AB_length)/AB_length
+    
+    pD <- c(xc + r_prime * cos(theta[i]-alpha), yc + r_prime * sin(theta[i]-alpha))
+    pE <- c(xc + r * cos(theta[i]-beta), yc + r * sin(theta[i]-beta))
+    pF <- pE + (pE-pD) * (indentation_vector[i] - AB_length)/AB_length
+    
+    if (indentation_vector[i] > 0) {
+      #connect B, C, F, E
+      draw_line(pB, pC)
+      draw_line(pC, pF)
+      draw_line(pF, pE)
+    } else {
+      draw_arc(xc, yc, r, theta[i] - beta, theta[i] + beta, n = 32)
+    }
+    
+    # now draw the fragment of arc until the next clock-time position is reached
+    draw_arc(xc, yc, r, theta[i+1] + beta, theta[i] - beta, n = 32)
+  }
+  
+  
+  # ------------------------------------------------------------
+  # 4. Small circles at half-step positions
+  # ------------------------------------------------------------
+  
+  # Shift by half of one 10-position interval = 18 degrees.
+  theta_small <- theta - dtheta / 2
+  
+  for (i in seq_len(n_pos)) {
+    
+    if (small_circle_vector[i]) {
+      
+      # Center of the small circle
+      x <- xc + ds * cos(theta_small[i])
+      y <- yc + ds * sin(theta_small[i])
+      
+      draw_arc(x, y, rs, 0, 2 * pi, n = 64)
+    }
+  }
+  
+  
+  # ------------------------------------------------------------
+  # 5. Central circle
+  # ------------------------------------------------------------
+  
+  draw_arc(xc, yc, ra, 0, 2 * pi, n = 256)
+}
+
 open.pdf <- function(title, width_in_mm, height_in_mm, margin_in_mm) {
   pdf(file=title, width=(width_in_mm + 2 * margin_in_mm) / 25.4, height=(height_in_mm + 2 * margin_in_mm) / 25.4 )   #units: inches
   par(mai=c(margin_in_mm / 25.4, margin_in_mm / 25.4, margin_in_mm / 25.4, margin_in_mm / 25.4))  #mai - margins in inches
@@ -163,5 +280,13 @@ close.pdf()
 
 
 open.pdf("design_PDFs/circles.pdf", 100, 100, 10)
-draw_circle()
+draw_circle(
+  50, 50, 30,
+  c(10, rep(5, 9)),
+  9,
+  1.5,
+  25,
+  rep(TRUE, 10),
+  9.5
+)
 close.pdf()
